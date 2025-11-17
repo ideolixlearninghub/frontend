@@ -1,23 +1,308 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ideolix Learning Hub</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" href="https://raw.githubusercontent.com/ideolixlearninghub/ideolix-web/main/ideolix%20LOGO.jpg" type="image/png">
+
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <script type="importmap">
-  {
-    "imports": {
-      "react": "https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js",
-      "react-dom": "https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js",
-      "react-router-dom": "https://cdn.jsdelivr.net/npm/react-router-dom@6/umd/react-router-dom.production.min.js"
+
+  <!-- Axios for API calls -->
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+  <style>
+    /* Animated gradient overlay */
+    @keyframes gradient-bg {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
-  }
-  </script>
+
+    body, html {
+      height: 100%;
+      margin: 0;
+      font-family: "Inter", sans-serif;
+    }
+
+    .hero {
+      position: relative;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: url('https://source.unsplash.com/1600x900/?education,school,books');
+      background-size: cover;
+      background-position: center;
+      filter: brightness(0.6);
+      z-index: -2;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(-45deg, #1E40AF, #10B981, #F59E0B, #1F2937);
+      background-size: 400% 400%;
+      animation: gradient-bg 15s ease infinite;
+      opacity: 0.6;
+      z-index: -1;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(10px);
+      border-radius: 1rem;
+      padding: 2rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      transform: translateY(0);
+      transition: transform 0.4s, box-shadow 0.4s;
+    }
+
+    .card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .btn {
+      @apply px-6 py-2 rounded-lg text-white font-medium;
+    }
+
+    .btn-primary {
+      @apply bg-blue-600 hover:bg-blue-700;
+    }
+
+    .btn-secondary {
+      @apply bg-green-600 hover:bg-green-700;
+    }
+  </style>
+
 </head>
 <body class="bg-gray-100">
+
   <div id="root"></div>
-  <script type="module" src="index.jsx"></script>
+
+  <script type="module">
+    import React from "https://cdn.jsdelivr.net/npm/react@18/umd/react.development.js";
+    import ReactDOM from "https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.development.js";
+
+    const { useState, useEffect } = React;
+
+    const API_BASE = "https://exambackend-52h2.onrender.com";
+
+    async function api(path, method = "GET", data = null) {
+      try {
+        const res = await axios({
+          method,
+          url: API_BASE + path,
+          data,
+          headers: { "Content-Type": "application/json" },
+        });
+        return res.data;
+      } catch (err) {
+        console.error("API error:", err);
+        throw err;
+      }
+    }
+
+    function App() {
+      const [page, setPage] = useState("welcome");
+      const [user, setUser] = useState(null);
+      const [form, setForm] = useState({ name: "", email: "", password: "" });
+      const [message, setMessage] = useState("");
+      const [practiceQuestions, setPracticeQuestions] = useState([]);
+      const [assessmentQuestions, setAssessmentQuestions] = useState([]);
+      const [selectedAnswers, setSelectedAnswers] = useState({});
+      const [score, setScore] = useState(0);
+
+      const go = (p) => { setPage(p); setMessage(""); };
+
+      const handleChange = (e) => {
+        setForm({ ...form, [e.target.name]: e.target.value });
+      };
+
+      const register = async () => {
+        try {
+          const res = await api("/register", "POST", form);
+          setMessage(res.message);
+          go("login");
+        } catch (err) {
+          setMessage(err.response?.data?.error || "Error registering");
+        }
+      };
+
+      const login = async () => {
+        try {
+          const res = await api("/login", "POST", form);
+          setMessage(res.message);
+          setUser({ email: form.email });
+          go("dashboard");
+        } catch (err) {
+          setMessage(err.response?.data?.error || "Login failed");
+        }
+      };
+
+      const loadPractice = async () => {
+        try {
+          const body = {
+            curriculum: "nigerian",
+            grade: "grade1",
+            subject: "Mathematics",
+            topics: ["Algebra", "Geometry"],
+            count_per_topic: 20
+          };
+          const res = await api("/practice", "POST", body);
+          setPracticeQuestions(res.questions);
+          go("practice");
+        } catch (err) {
+          setMessage("Could not load practice questions");
+        }
+      };
+
+      const loadAssessment = async () => {
+        try {
+          const body = {
+            curriculum: "nigerian",
+            grade: "grade1",
+            subject: "Mathematics",
+            count: 70
+          };
+          const res = await api("/assessment", "POST", body);
+          setAssessmentQuestions(res.questions);
+          go("assessment");
+        } catch (err) {
+          setMessage("Could not load assessment questions");
+        }
+      };
+
+      const submitAssessment = async () => {
+        const totalCorrect = Object.values(selectedAnswers).filter(v => v === true).length;
+        try {
+          const res = await api("/submit_assessment", "POST", {
+            email: user.email,
+            score: totalCorrect,
+            total: assessmentQuestions.length
+          });
+          alert(`Result: ${res.percentage}% — Passed: ${res.passed}`);
+          go("dashboard");
+        } catch (err) {
+          setMessage("Error submitting assessment");
+        }
+      };
+
+      // Render UI by page
+      if (page === "welcome") {
+        return React.createElement("div", { className: "hero" },
+          React.createElement("div", { className: "card text-center max-w-md" },
+            React.createElement("h1", { className: "text-4xl font-bold text-white mb-4" }, "Ideolix Learning Hub"),
+            React.createElement("p", { className: "text-lg text-white/90 mb-6" },
+              "Practice unlimited questions. Take assessments. Learn and certify."
+            ),
+            React.createElement("div", null,
+              React.createElement("button", { className: "btn btn-secondary mr-4", onClick: () => go("register") }, "Register"),
+              React.createElement("button", { className: "btn btn-primary", onClick: () => go("login") }, "Login")
+            )
+          )
+        );
+      }
+
+      if (page === "register" || page === "login") {
+        const isLogin = page === "login";
+        return React.createElement("div", { className: "min-h-screen flex items-center justify-center p-4" },
+          React.createElement("div", { className: "card max-w-sm w-full space-y-4" },
+            React.createElement("h2", { className: "text-2xl font-bold" }, isLogin ? "Login" : "Create Account"),
+            !isLogin && React.createElement("input", {
+              name: "name", placeholder: "Full Name",
+              className: "w-full p-2 border rounded",
+              onChange: handleChange
+            }),
+            React.createElement("input", {
+              name: "email", placeholder: "Email",
+              className: "w-full p-2 border rounded",
+              onChange: handleChange
+            }),
+            React.createElement("input", {
+              name: "password", type: "password", placeholder: "Password",
+              className: "w-full p-2 border rounded",
+              onChange: handleChange
+            }),
+            React.createElement("button", {
+              className: `btn ${isLogin ? "btn-primary" : "btn-secondary"} w-full`,
+              onClick: isLogin ? login : register
+            }, isLogin ? "Login" : "Register"),
+            message && React.createElement("p", { className: "text-red-600" }, message),
+            React.createElement("p", {
+              className: "text-sm text-blue-600 cursor-pointer",
+              onClick: () => go(isLogin ? "register" : "login")
+            }, isLogin ? "New user? Register" : "Already have an account? Login")
+          )
+        );
+      }
+
+      if (page === "dashboard") {
+        return React.createElement("div", { className: "p-8 max-w-xl mx-auto space-y-6" },
+          React.createElement("h1", { className: "text-3xl font-bold" }, `Welcome, ${user.email}`),
+          React.createElement("button", {
+            className: "btn btn-secondary mr-4",
+            onClick: loadPractice
+          }, "Practice Mode"),
+          React.createElement("button", {
+            className: "btn btn-primary",
+            onClick: loadAssessment
+          }, "Assessment Mode"),
+          message && React.createElement("p", { className: "text-red-600" }, message)
+        );
+      }
+
+      if (page === "practice") {
+        return React.createElement("div", { className: "p-8 space-y-6 max-w-2xl mx-auto" },
+          React.createElement("h2", { className: "text-2xl font-bold" }, "Practice Questions"),
+          practiceQuestions.map((q, i) => {
+            return React.createElement("div", { key: i, className: "p-4 border rounded bg-white" },
+              React.createElement("p", { className: "font-medium mb-2" }, `${i+1}. ${q.question}`),
+              q.choices && q.choices.length > 0 && React.createElement("ul", { className: "list-disc ml-6" },
+                q.choices.map((c, j) => React.createElement("li", { key: j }, c))
+              ),
+              React.createElement("p", { className: "mt-2 text-sm text-gray-600" },
+                `Answer: ${q.answer}`
+              )
+            );
+          }),
+          React.createElement("button", { className: "btn btn-primary", onClick: () => go("dashboard") }, "Back to Dashboard")
+        );
+      }
+
+      if (page === "assessment") {
+        return React.createElement("div", { className: "p-8 space-y-6 max-w-2xl mx-auto" },
+          React.createElement("h2", { className: "text-2xl font-bold" }, "Assessment"),
+          assessmentQuestions.map((q, i) => React.createElement("div", { key: i, className: "p-4 border rounded bg-white" },
+            React.createElement("p", { className: "font-medium mb-2" }, `${i+1}. ${q.question}`),
+            q.choices && q.choices.map((c, j) => React.createElement("button", {
+              key: j,
+              className: "block my-1 px-3 py-1 border rounded hover:bg-gray-200",
+              onClick: () => setSelectedAnswers({ ...selectedAnswers, [i]: c })
+            }, c))
+          )),
+          React.createElement("div", { className: "flex gap-4" },
+            React.createElement("button", { className: "btn btn-secondary", onClick: submitAssessment }, "Submit Assessment"),
+            React.createElement("button", { className: "btn btn-primary", onClick: () => go("dashboard") }, "Cancel")
+          )
+        );
+      }
+
+      return React.createElement("div", null, "Unknown Page");
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(React.createElement(App));
+  </script>
 </body>
 </html>
+
