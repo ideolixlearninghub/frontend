@@ -1,308 +1,782 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ideolix Learning Hub</title>
-
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Axios for API calls -->
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-
-  <style>
-    /* Animated gradient overlay */
-    @keyframes gradient-bg {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
-    body, html {
-      height: 100%;
-      margin: 0;
-      font-family: "Inter", sans-serif;
-    }
-
-    .hero {
-      position: relative;
-      height: 100vh;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .hero::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background-image: url('https://source.unsplash.com/1600x900/?education,school,books');
-      background-size: cover;
-      background-position: center;
-      filter: brightness(0.6);
-      z-index: -2;
-    }
-
-    .hero::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(-45deg, #1E40AF, #10B981, #F59E0B, #1F2937);
-      background-size: 400% 400%;
-      animation: gradient-bg 15s ease infinite;
-      opacity: 0.6;
-      z-index: -1;
-    }
-
-    .card {
-      background: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(10px);
-      border-radius: 1rem;
-      padding: 2rem;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-      transform: translateY(0);
-      transition: transform 0.4s, box-shadow 0.4s;
-    }
-
-    .card:hover {
-      transform: translateY(-10px);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-    }
-
-    .btn {
-      @apply px-6 py-2 rounded-lg text-white font-medium;
-    }
-
-    .btn-primary {
-      @apply bg-blue-600 hover:bg-blue-700;
-    }
-
-    .btn-secondary {
-      @apply bg-green-600 hover:bg-green-700;
-    }
-  </style>
-
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ideolix Learning Hub - Exam Platform</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: {
+            50: '#FFFBEB',
+            100: '#FEF3C7',
+            500: '#F59E0B',
+            600: '#D97706',
+            700: '#B45309',
+          },
+          secondary: {
+            50: '#ECFDF5',
+            100: '#D1FAE5',
+            500: '#10B981',
+            600: '#059669',
+            700: '#047857',
+          },
+          accent: {
+            50: '#EFF6FF',
+            100: '#DBEAFE',
+            500: '#1E40AF',
+            600: '#1E3A8A',
+            700: '#1C366B',
+          },
+          neutral: {
+            50: '#F9FAFB',
+            100: '#F3F4F6',
+            500: '#6B7280',
+            600: '#4B5563',
+            700: '#374151',
+            800: '#1F2937',
+            900: '#111827',
+          },
+        },
+        fontFamily: {
+          'sans': ['Inter', 'system-ui', 'sans-serif'],
+        },
+        boxShadow: {
+          'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
+        }
+      },
+    },
+  }
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body {
+    font-family: 'Inter', sans-serif;
+  }
+  
+  .btn-primary {
+    @apply bg-primary-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-primary-600 transition-all duration-200 shadow-sm hover:shadow-md;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-secondary-600 transition-all duration-200 shadow-sm hover:shadow-md;
+  }
+  
+  .btn-outline {
+    @apply bg-white text-primary-500 border border-primary-500 px-6 py-3 rounded-lg font-medium hover:bg-primary-50 transition-all duration-200;
+  }
+  
+  .question-card {
+    @apply p-6 mb-6 bg-white rounded-xl shadow-soft border border-neutral-100;
+  }
+  
+  .progress-bar {
+    @apply h-2 bg-neutral-200 rounded-full overflow-hidden;
+  }
+  
+  .progress-fill {
+    @apply h-full bg-primary-500 transition-all duration-500;
+  }
+  
+  .question-nav-item {
+    @apply w-10 h-10 flex items-center justify-center rounded-lg border border-neutral-300 text-neutral-700 font-medium cursor-pointer transition-all duration-200;
+  }
+  
+  .question-nav-item.active {
+    @apply bg-primary-500 text-white border-primary-500;
+  }
+  
+  .question-nav-item.answered {
+    @apply bg-secondary-100 text-secondary-700 border-secondary-300;
+  }
+  
+  .question-nav-item.flagged {
+    @apply bg-accent-100 text-accent-700 border-accent-300;
+  }
+  
+  .timer {
+    @apply px-4 py-2 bg-white rounded-lg border border-neutral-200 font-medium text-neutral-800;
+  }
+  
+  .timer.warning {
+    @apply bg-yellow-50 border-yellow-200 text-yellow-700;
+  }
+  
+  .timer.critical {
+    @apply bg-red-50 border-red-200 text-red-700;
+  }
+  
+  .form-input {
+    @apply w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200;
+  }
+  
+  .hero-gradient {
+    background: linear-gradient(135deg, #F59E0B 0%, #10B981 100%);
+  }
+</style>
 </head>
-<body class="bg-gray-100">
+<body class="bg-neutral-50">
+<!-- Header -->
+<header class="bg-white shadow-sm py-4">
+  <div class="max-w-6xl mx-auto px-6 flex justify-between items-center">
+    <div class="flex items-center space-x-2">
+      <div class="w-10 h-10 rounded-lg bg-primary-500 flex items-center justify-center">
+        <i class="fas fa-graduation-cap text-white text-xl"></i>
+      </div>
+      <h1 class="text-xl font-bold text-neutral-800">Ideolix Learning Hub</h1>
+    </div>
+    <div id="user-display" class="hidden">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
+          <i class="fas fa-user text-primary-500"></i>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-neutral-800" id="display-name"></p>
+          <p class="text-xs text-neutral-500" id="display-email"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
 
-  <div id="root"></div>
+<div class="max-w-6xl mx-auto px-6 py-8">
+  <!-- Welcome Section -->
+  <section id="welcome-section" class="mb-12">
+    <div class="bg-white rounded-2xl shadow-soft overflow-hidden">
+      <div class="hero-gradient py-12 px-8 text-white">
+        <h1 class="text-4xl font-bold mb-4">Master Mathematics with Confidence</h1>
+        <p class="text-xl mb-8 max-w-2xl">Prepare for success with personalized practice and comprehensive assessments designed to track your progress.</p>
+        <div class="flex items-center space-x-4 mb-6">
+          <div class="flex items-center">
+            <i class="fas fa-star text-yellow-300 mr-1"></i>
+            <i class="fas fa-star text-yellow-300 mr-1"></i>
+            <i class="fas fa-star text-yellow-300 mr-1"></i>
+            <i class="fas fa-star text-yellow-300 mr-1"></i>
+            <i class="fas fa-star text-yellow-300"></i>
+          </div>
+          <span class="font-medium">4.8/5 from 10,000+ learners</span>
+        </div>
+      </div>
+      
+      <div class="p-8">
+        <h2 class="text-2xl font-bold text-neutral-800 mb-6">Get Started</h2>
+        
+        <!-- User Info -->
+        <div id="user-info">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+              <label for="name" class="block text-sm font-medium text-neutral-700 mb-2">Full Name</label>
+              <input type="text" id="name" placeholder="Enter your full name" class="form-input">
+            </div>
+            <div>
+              <label for="email" class="block text-sm font-medium text-neutral-700 mb-2">Email Address</label>
+              <input type="email" id="email" placeholder="Enter your email" class="form-input">
+            </div>
+          </div>
+          <button class="btn-primary w-full md:w-auto" onclick="login()">
+            <i class="fas fa-rocket mr-2"></i>Start Learning Journey
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
 
-  <script type="module">
-    import React from "https://cdn.jsdelivr.net/npm/react@18/umd/react.development.js";
-    import ReactDOM from "https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.development.js";
+  <!-- Mode Selection -->
+  <section id="mode-selection" class="hidden mb-12">
+    <div class="text-center mb-10">
+      <h2 class="text-3xl font-bold text-neutral-800 mb-4">Choose Your Learning Path</h2>
+      <p class="text-neutral-600 max-w-2xl mx-auto">Select between practice mode to learn at your own pace or assessment mode to test your knowledge under exam conditions.</p>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div class="bg-white rounded-2xl p-8 shadow-soft border border-neutral-100 hover:shadow-md transition-all duration-300">
+        <div class="w-16 h-16 rounded-xl bg-primary-100 flex items-center justify-center mb-6">
+          <i class="fas fa-dumbbell text-primary-500 text-2xl"></i>
+        </div>
+        <h3 class="text-xl font-bold text-neutral-800 mb-4">Practice Mode</h3>
+        <p class="text-neutral-600 mb-6">Learn at your own pace with immediate feedback and explanations. Perfect for building confidence and mastering concepts.</p>
+        <ul class="text-neutral-600 mb-8 space-y-2">
+          <li class="flex items-start">
+            <i class="fas fa-check text-secondary-500 mr-2 mt-1"></i>
+            <span>Unlimited attempts</span>
+          </li>
+          <li class="flex items-start">
+            <i class="fas fa-check text-secondary-500 mr-2 mt-1"></i>
+            <span>Detailed explanations</span>
+          </li>
+          <li class="flex items-start">
+            <i class="fas fa-check text-secondary-500 mr-2 mt-1"></i>
+            <span>Progress tracking</span>
+          </li>
+        </ul>
+        <button class="btn-primary w-full" onclick="startPractice()">
+          Start Practice Session
+        </button>
+      </div>
+      
+      <div class="bg-white rounded-2xl p-8 shadow-soft border border-neutral-100 hover:shadow-md transition-all duration-300">
+        <div class="w-16 h-16 rounded-xl bg-accent-100 flex items-center justify-center mb-6">
+          <i class="fas fa-clipboard-check text-accent-500 text-2xl"></i>
+        </div>
+        <h3 class="text-xl font-bold text-neutral-800 mb-4">Assessment Mode</h3>
+        <p class="text-neutral-600 mb-6">Test your knowledge under exam conditions with timed assessments. Receive a certificate upon successful completion.</p>
+        <ul class="text-neutral-600 mb-8 space-y-2">
+          <li class="flex items-start">
+            <i class="fas fa-check text-secondary-500 mr-2 mt-1"></i>
+            <span>Timed environment</span>
+          </li>
+          <li class="flex items-start">
+            <i class="fas fa-check text-secondary-500 mr-2 mt-1"></i>
+            <span>Certificate of completion</span>
+          </li>
+          <li class="flex items-start">
+            <i class="fas fa-check text-secondary-500 mr-2 mt-1"></i>
+            <span>Performance analytics</span>
+          </li>
+        </ul>
+        <button class="btn-secondary w-full" onclick="startAssessment()">
+          Start Assessment
+        </button>
+      </div>
+    </div>
+  </section>
 
-    const { useState, useEffect } = React;
+  <!-- Assessment Header (Timer & Progress) -->
+  <div id="assessment-header" class="hidden mb-6">
+    <div class="bg-white rounded-xl p-6 shadow-soft">
+      <div class="flex flex-col md:flex-row justify-between items-center">
+        <div class="mb-4 md:mb-0">
+          <h2 class="text-xl font-bold text-neutral-800" id="assessment-title">Mathematics Assessment</h2>
+          <p class="text-neutral-600" id="question-count">Question 1 of 10</p>
+        </div>
+        
+        <div class="flex items-center space-x-4">
+          <div class="timer" id="timer">
+            <i class="far fa-clock mr-2"></i><span id="time-display">60:00</span>
+          </div>
+          <button class="btn-outline" id="flag-btn" onclick="toggleFlag()">
+            <i class="far fa-flag mr-2"></i>Flag
+          </button>
+        </div>
+      </div>
+      
+      <div class="mt-4">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progress-bar" style="width: 0%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    const API_BASE = "https://exambackend-52h2.onrender.com";
+  <!-- Questions Container -->
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <!-- Question Navigation -->
+    <div id="question-navigation" class="hidden lg:block">
+      <div class="bg-white rounded-xl p-6 shadow-soft sticky top-6">
+        <h3 class="font-bold text-neutral-800 mb-4">Questions</h3>
+        <div class="grid grid-cols-5 gap-2" id="question-nav-grid">
+          <!-- Question navigation items will be generated here -->
+        </div>
+        
+        <div class="mt-6 pt-6 border-t border-neutral-200">
+          <div class="flex items-center mb-2">
+            <div class="question-nav-item active w-4 h-4 mr-2"></div>
+            <span class="text-sm text-neutral-600">Current</span>
+          </div>
+          <div class="flex items-center mb-2">
+            <div class="question-nav-item answered w-4 h-4 mr-2"></div>
+            <span class="text-sm text-neutral-600">Answered</span>
+          </div>
+          <div class="flex items-center">
+            <div class="question-nav-item flagged w-4 h-4 mr-2"></div>
+            <span class="text-sm text-neutral-600">Flagged</span>
+          </div>
+        </div>
+      </div>
+    </div>
 
-    async function api(path, method = "GET", data = null) {
-      try {
-        const res = await axios({
-          method,
-          url: API_BASE + path,
-          data,
-          headers: { "Content-Type": "application/json" },
-        });
-        return res.data;
-      } catch (err) {
-        console.error("API error:", err);
-        throw err;
-      }
+    <!-- Questions & Options -->
+    <div class="lg:col-span-3">
+      <div id="questions-container"></div>
+      
+      <!-- Navigation Buttons -->
+      <div id="question-navigation-buttons" class="hidden flex justify-between mt-6">
+        <button class="btn-outline" id="prev-btn" onclick="navigateQuestion(-1)">
+          <i class="fas fa-arrow-left mr-2"></i>Previous
+        </button>
+        <button class="btn-primary" id="next-btn" onclick="navigateQuestion(1)">
+          Next<i class="fas fa-arrow-right ml-2"></i>
+        </button>
+      </div>
+      
+      <!-- Submit Assessment -->
+      <div id="submit-container" class="mt-8 hidden">
+        <div class="bg-white rounded-xl p-6 shadow-soft text-center">
+          <h3 class="text-xl font-bold text-neutral-800 mb-4">Ready to submit your assessment?</h3>
+          <p class="text-neutral-600 mb-6">Please review your answers before submitting. You won't be able to make changes after submission.</p>
+          <button class="btn-secondary" onclick="submitAssessment()">
+            <i class="fas fa-paper-plane mr-2"></i>Submit Assessment
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results Section -->
+  <section id="results-section" class="hidden mt-12">
+    <div class="bg-white rounded-2xl p-8 shadow-soft text-center">
+      <div class="w-20 h-20 rounded-full bg-secondary-100 flex items-center justify-center mx-auto mb-6">
+        <i class="fas fa-trophy text-secondary-500 text-3xl"></i>
+      </div>
+      <h2 class="text-3xl font-bold text-neutral-800 mb-4">Assessment Complete!</h2>
+      <div class="max-w-md mx-auto mb-8">
+        <div class="flex justify-between mb-2">
+          <span class="text-neutral-700">Your Score</span>
+          <span class="font-bold text-neutral-800" id="score-display">18/20</span>
+        </div>
+        <div class="progress-bar mb-6">
+          <div class="progress-fill bg-secondary-500" id="score-progress" style="width: 90%"></div>
+        </div>
+        <p class="text-neutral-600 mb-2" id="result-message">Congratulations! You've passed the assessment with flying colors.</p>
+        <p class="text-sm text-neutral-500" id="performance-feedback">Your performance shows strong understanding of the material.</p>
+      </div>
+      
+      <!-- Certificate Download -->
+      <div id="certificate-container" class="mt-6">
+        <a id="certificate-link" class="btn-primary inline-flex items-center" href="#" target="_blank">
+          <i class="fas fa-download mr-2"></i>Download Certificate
+        </a>
+      </div>
+      
+      <div class="mt-8 pt-8 border-t border-neutral-200">
+        <button class="btn-outline mr-4" onclick="restartAssessment()">
+          <i class="fas fa-redo mr-2"></i>Try Again
+        </button>
+        <button class="btn-primary" onclick="goToDashboard()">
+          <i class="fas fa-home mr-2"></i>Back to Dashboard
+        </button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<footer class="bg-neutral-800 text-white py-8 mt-12">
+  <div class="max-w-6xl mx-auto px-6 text-center">
+    <p class="text-neutral-400">© 2023 Ideolix Learning Hub. All rights reserved.</p>
+  </div>
+</footer>
+
+<script>
+const API_BASE = "https://exambackend-52h2.onrender.com";
+
+let user = {};
+let currentQuestions = [];
+let userAnswers = [];
+let currentQuestionIndex = 0;
+let flaggedQuestions = new Set();
+let timerInterval;
+let timeRemaining = 3600; // 60 minutes in seconds for assessment
+
+function login() {
+  const name = document.getElementById("name").value.trim();
+  const email = document.getElementById("email").value.trim();
+  
+  if(!name || !email) { 
+    alert("Please enter both your name and email address"); 
+    return; 
+  }
+  
+  user = {name, email};
+  
+  // Update user display
+  document.getElementById("display-name").textContent = name;
+  document.getElementById("display-email").textContent = email;
+  document.getElementById("user-display").classList.remove("hidden");
+  
+  // Show mode selection
+  document.getElementById("welcome-section").classList.add("hidden");
+  document.getElementById("mode-selection").classList.remove("hidden");
+}
+
+// Mock: fetch questions from backend
+async function fetchQuestions(mode="practice") {
+  // Example: fetch 30 questions per topic for practice
+  const payload = {
+    curriculum: "Nigerian",
+    grade: "Grade6",
+    subject: "Mathematics",
+    topics: ["Algebra","Geometry","Fractions"],
+    count_per_topic: mode==="practice"?30:70
+  };
+
+  try {
+    const res = await fetch(`${API_BASE}/generate_questions`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    return data.questions || [];
+  } catch (error) {
+    console.error("Error fetching questions:", error);
+    // Fallback to mock questions if API fails
+    return generateMockQuestions(10);
+  }
+}
+
+function generateMockQuestions(count) {
+  const questions = [];
+  for (let i = 0; i < count; i++) {
+    questions.push({
+      id: i,
+      body: `Sample question ${i+1}: What is the value of x in the equation 2x + 5 = 15?`,
+      type: "mcq_single",
+      choices: ["5", "10", "15", "20"],
+      correctAnswer: "5"
+    });
+  }
+  return questions;
+}
+
+function renderQuestions() {
+  const container = document.getElementById("questions-container");
+  container.innerHTML = "";
+  
+  // Only show one question at a time for assessment mode
+  if (document.getElementById("assessment-header").classList.contains("hidden")) {
+    // Practice mode - show all questions
+    currentQuestions.forEach((q, i) => {
+      container.appendChild(createQuestionCard(q, i));
+    });
+    document.getElementById("submit-container").classList.remove("hidden");
+  } else {
+    // Assessment mode - show one question at a time
+    container.appendChild(createQuestionCard(currentQuestions[currentQuestionIndex], currentQuestionIndex));
+    updateQuestionNavigation();
+    document.getElementById("question-navigation-buttons").classList.remove("hidden");
+    
+    // Show submit button only on last question
+    if (currentQuestionIndex === currentQuestions.length - 1) {
+      document.getElementById("next-btn").textContent = "Submit";
+      document.getElementById("next-btn").setAttribute("onclick", "showSubmitConfirmation()");
+    } else {
+      document.getElementById("next-btn").textContent = "Next";
+      document.getElementById("next-btn").setAttribute("onclick", "navigateQuestion(1)");
     }
+    
+    // Update progress
+    updateProgress();
+  }
+}
 
-    function App() {
-      const [page, setPage] = useState("welcome");
-      const [user, setUser] = useState(null);
-      const [form, setForm] = useState({ name: "", email: "", password: "" });
-      const [message, setMessage] = useState("");
-      const [practiceQuestions, setPracticeQuestions] = useState([]);
-      const [assessmentQuestions, setAssessmentQuestions] = useState([]);
-      const [selectedAnswers, setSelectedAnswers] = useState({});
-      const [score, setScore] = useState(0);
-
-      const go = (p) => { setPage(p); setMessage(""); };
-
-      const handleChange = (e) => {
-        setForm({ ...form, [e.target.name]: e.target.value });
-      };
-
-      const register = async () => {
-        try {
-          const res = await api("/register", "POST", form);
-          setMessage(res.message);
-          go("login");
-        } catch (err) {
-          setMessage(err.response?.data?.error || "Error registering");
-        }
-      };
-
-      const login = async () => {
-        try {
-          const res = await api("/login", "POST", form);
-          setMessage(res.message);
-          setUser({ email: form.email });
-          go("dashboard");
-        } catch (err) {
-          setMessage(err.response?.data?.error || "Login failed");
-        }
-      };
-
-      const loadPractice = async () => {
-        try {
-          const body = {
-            curriculum: "nigerian",
-            grade: "grade1",
-            subject: "Mathematics",
-            topics: ["Algebra", "Geometry"],
-            count_per_topic: 20
-          };
-          const res = await api("/practice", "POST", body);
-          setPracticeQuestions(res.questions);
-          go("practice");
-        } catch (err) {
-          setMessage("Could not load practice questions");
-        }
-      };
-
-      const loadAssessment = async () => {
-        try {
-          const body = {
-            curriculum: "nigerian",
-            grade: "grade1",
-            subject: "Mathematics",
-            count: 70
-          };
-          const res = await api("/assessment", "POST", body);
-          setAssessmentQuestions(res.questions);
-          go("assessment");
-        } catch (err) {
-          setMessage("Could not load assessment questions");
-        }
-      };
-
-      const submitAssessment = async () => {
-        const totalCorrect = Object.values(selectedAnswers).filter(v => v === true).length;
-        try {
-          const res = await api("/submit_assessment", "POST", {
-            email: user.email,
-            score: totalCorrect,
-            total: assessmentQuestions.length
+function createQuestionCard(q, index) {
+  const card = document.createElement("div");
+  card.className = "question-card";
+  card.id = `question-${index}`;
+  
+  let html = `<p class="text-lg font-medium text-neutral-800 mb-4"><span class="text-primary-500 font-bold">Q${index+1}:</span> ${q.body}</p>`;
+  
+  if(q.type==="mcq_single" || q.type==="mcq_multi") {
+    q.choices.forEach((choice,j)=>{
+      const inputId = `q${index}-option${j}`;
+      html += `<div class="mb-3">
+        <input type="${q.type==='mcq_multi'?'checkbox':'radio'}" id="${inputId}" name="q${index}" value="${choice}" class="hidden">
+        <label for="${inputId}" class="flex items-center p-4 border border-neutral-300 rounded-lg cursor-pointer hover:bg-neutral-50 transition-all duration-200 question-option">
+          <span class="flex items-center justify-center w-6 h-6 rounded-full border border-neutral-400 mr-3">
+            <i class="fas fa-check text-white text-xs hidden"></i>
+          </span>
+          ${choice}
+        </label>
+      </div>`;
+    });
+  } else if(q.type==="numeric") {
+    html += `<input type="number" name="q${index}" class="form-input w-full md:w-1/2" placeholder="Enter your answer">`;
+  } else if(q.type==="essay") {
+    html += `<textarea name="q${index}" class="form-input w-full" rows="4" placeholder="Type your answer here..."></textarea>`;
+  }
+  
+  card.innerHTML = html;
+  
+  // Add event listeners for MCQ options
+  if(q.type==="mcq_single" || q.type==="mcq_multi") {
+    const options = card.querySelectorAll('.question-option');
+    options.forEach(option => {
+      option.addEventListener('click', function() {
+        const input = this.previousElementSibling;
+        
+        if(q.type === 'mcq_single') {
+          // For single choice, uncheck all others
+          options.forEach(opt => {
+            const optInput = opt.previousElementSibling;
+            if(optInput !== input) {
+              optInput.checked = false;
+              opt.classList.remove('bg-primary-50', 'border-primary-500');
+              opt.querySelector('span').classList.remove('bg-primary-500', 'border-primary-500');
+              opt.querySelector('i').classList.add('hidden');
+            }
           });
-          alert(`Result: ${res.percentage}% — Passed: ${res.passed}`);
-          go("dashboard");
-        } catch (err) {
-          setMessage("Error submitting assessment");
         }
-      };
+        
+        // Toggle current option
+        input.checked = !input.checked;
+        
+        if(input.checked) {
+          this.classList.add('bg-primary-50', 'border-primary-500');
+          this.querySelector('span').classList.add('bg-primary-500', 'border-primary-500');
+          this.querySelector('i').classList.remove('hidden');
+        } else {
+          this.classList.remove('bg-primary-50', 'border-primary-500');
+          this.querySelector('span').classList.remove('bg-primary-500', 'border-primary-500');
+          this.querySelector('i').classList.add('hidden');
+        }
+        
+        // Save answer
+        saveAnswer(index);
+      });
+    });
+  } else {
+    // For numeric and essay inputs
+    const input = card.querySelector('input, textarea');
+    input.addEventListener('input', function() {
+      saveAnswer(index);
+    });
+  }
+  
+  return card;
+}
 
-      // Render UI by page
-      if (page === "welcome") {
-        return React.createElement("div", { className: "hero" },
-          React.createElement("div", { className: "card text-center max-w-md" },
-            React.createElement("h1", { className: "text-4xl font-bold text-white mb-4" }, "Ideolix Learning Hub"),
-            React.createElement("p", { className: "text-lg text-white/90 mb-6" },
-              "Practice unlimited questions. Take assessments. Learn and certify."
-            ),
-            React.createElement("div", null,
-              React.createElement("button", { className: "btn btn-secondary mr-4", onClick: () => go("register") }, "Register"),
-              React.createElement("button", { className: "btn btn-primary", onClick: () => go("login") }, "Login")
-            )
-          )
-        );
-      }
+function saveAnswer(index) {
+  const container = document.getElementById("questions-container");
+  const q = currentQuestions[index];
+  
+  if(q.type==="mcq_multi") {
+    const inputs = container.querySelectorAll(`[name=q${index}]:checked`);
+    const vals = Array.from(inputs).map(inp => inp.value);
+    userAnswers[index] = vals.length > 0 ? vals : null;
+  } else if(q.type==="mcq_single") {
+    const input = container.querySelector(`[name=q${index}]:checked`);
+    userAnswers[index] = input ? input.value : null;
+  } else if(q.type==="numeric" || q.type==="essay") {
+    const input = container.querySelector(`[name=q${index}]`);
+    userAnswers[index] = input.value.trim() || null;
+  }
+  
+  // Update navigation if in assessment mode
+  if (!document.getElementById("assessment-header").classList.contains("hidden")) {
+    updateQuestionNavigation();
+  }
+}
 
-      if (page === "register" || page === "login") {
-        const isLogin = page === "login";
-        return React.createElement("div", { className: "min-h-screen flex items-center justify-center p-4" },
-          React.createElement("div", { className: "card max-w-sm w-full space-y-4" },
-            React.createElement("h2", { className: "text-2xl font-bold" }, isLogin ? "Login" : "Create Account"),
-            !isLogin && React.createElement("input", {
-              name: "name", placeholder: "Full Name",
-              className: "w-full p-2 border rounded",
-              onChange: handleChange
-            }),
-            React.createElement("input", {
-              name: "email", placeholder: "Email",
-              className: "w-full p-2 border rounded",
-              onChange: handleChange
-            }),
-            React.createElement("input", {
-              name: "password", type: "password", placeholder: "Password",
-              className: "w-full p-2 border rounded",
-              onChange: handleChange
-            }),
-            React.createElement("button", {
-              className: `btn ${isLogin ? "btn-primary" : "btn-secondary"} w-full`,
-              onClick: isLogin ? login : register
-            }, isLogin ? "Login" : "Register"),
-            message && React.createElement("p", { className: "text-red-600" }, message),
-            React.createElement("p", {
-              className: "text-sm text-blue-600 cursor-pointer",
-              onClick: () => go(isLogin ? "register" : "login")
-            }, isLogin ? "New user? Register" : "Already have an account? Login")
-          )
-        );
-      }
+function updateQuestionNavigation() {
+  const navGrid = document.getElementById("question-nav-grid");
+  navGrid.innerHTML = "";
+  
+  currentQuestions.forEach((_, i) => {
+    const navItem = document.createElement("div");
+    navItem.className = "question-nav-item";
+    if (i === currentQuestionIndex) navItem.classList.add("active");
+    if (userAnswers[i]) navItem.classList.add("answered");
+    if (flaggedQuestions.has(i)) navItem.classList.add("flagged");
+    
+    navItem.textContent = i + 1;
+    navItem.addEventListener("click", () => navigateToQuestion(i));
+    
+    navGrid.appendChild(navItem);
+  });
+}
 
-      if (page === "dashboard") {
-        return React.createElement("div", { className: "p-8 max-w-xl mx-auto space-y-6" },
-          React.createElement("h1", { className: "text-3xl font-bold" }, `Welcome, ${user.email}`),
-          React.createElement("button", {
-            className: "btn btn-secondary mr-4",
-            onClick: loadPractice
-          }, "Practice Mode"),
-          React.createElement("button", {
-            className: "btn btn-primary",
-            onClick: loadAssessment
-          }, "Assessment Mode"),
-          message && React.createElement("p", { className: "text-red-600" }, message)
-        );
-      }
+function navigateToQuestion(index) {
+  currentQuestionIndex = index;
+  renderQuestions();
+}
 
-      if (page === "practice") {
-        return React.createElement("div", { className: "p-8 space-y-6 max-w-2xl mx-auto" },
-          React.createElement("h2", { className: "text-2xl font-bold" }, "Practice Questions"),
-          practiceQuestions.map((q, i) => {
-            return React.createElement("div", { key: i, className: "p-4 border rounded bg-white" },
-              React.createElement("p", { className: "font-medium mb-2" }, `${i+1}. ${q.question}`),
-              q.choices && q.choices.length > 0 && React.createElement("ul", { className: "list-disc ml-6" },
-                q.choices.map((c, j) => React.createElement("li", { key: j }, c))
-              ),
-              React.createElement("p", { className: "mt-2 text-sm text-gray-600" },
-                `Answer: ${q.answer}`
-              )
-            );
-          }),
-          React.createElement("button", { className: "btn btn-primary", onClick: () => go("dashboard") }, "Back to Dashboard")
-        );
-      }
+function navigateQuestion(direction) {
+  const newIndex = currentQuestionIndex + direction;
+  if (newIndex >= 0 && newIndex < currentQuestions.length) {
+    currentQuestionIndex = newIndex;
+    renderQuestions();
+  }
+}
 
-      if (page === "assessment") {
-        return React.createElement("div", { className: "p-8 space-y-6 max-w-2xl mx-auto" },
-          React.createElement("h2", { className: "text-2xl font-bold" }, "Assessment"),
-          assessmentQuestions.map((q, i) => React.createElement("div", { key: i, className: "p-4 border rounded bg-white" },
-            React.createElement("p", { className: "font-medium mb-2" }, `${i+1}. ${q.question}`),
-            q.choices && q.choices.map((c, j) => React.createElement("button", {
-              key: j,
-              className: "block my-1 px-3 py-1 border rounded hover:bg-gray-200",
-              onClick: () => setSelectedAnswers({ ...selectedAnswers, [i]: c })
-            }, c))
-          )),
-          React.createElement("div", { className: "flex gap-4" },
-            React.createElement("button", { className: "btn btn-secondary", onClick: submitAssessment }, "Submit Assessment"),
-            React.createElement("button", { className: "btn btn-primary", onClick: () => go("dashboard") }, "Cancel")
-          )
-        );
-      }
+function toggleFlag() {
+  if (flaggedQuestions.has(currentQuestionIndex)) {
+    flaggedQuestions.delete(currentQuestionIndex);
+    document.getElementById("flag-btn").innerHTML = '<i class="far fa-flag mr-2"></i>Flag';
+  } else {
+    flaggedQuestions.add(currentQuestionIndex);
+    document.getElementById("flag-btn").innerHTML = '<i class="fas fa-flag mr-2"></i>Flagged';
+  }
+  updateQuestionNavigation();
+}
 
-      return React.createElement("div", null, "Unknown Page");
+function updateProgress() {
+  const progress = ((currentQuestionIndex + 1) / currentQuestions.length) * 100;
+  document.getElementById("progress-bar").style.width = `${progress}%`;
+  document.getElementById("question-count").textContent = `Question ${currentQuestionIndex + 1} of ${currentQuestions.length}`;
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  
+  timerInterval = setInterval(() => {
+    timeRemaining--;
+    
+    const minutes = Math.floor(timeRemaining / 60);
+    const seconds = timeRemaining % 60;
+    
+    document.getElementById("time-display").textContent = 
+      `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    
+    // Update timer appearance based on remaining time
+    const timerElement = document.getElementById("timer");
+    timerElement.classList.remove("warning", "critical");
+    
+    if (timeRemaining <= 300) { // 5 minutes
+      timerElement.classList.add("critical");
+    } else if (timeRemaining <= 900) { // 15 minutes
+      timerElement.classList.add("warning");
     }
+    
+    if (timeRemaining <= 0) {
+      clearInterval(timerInterval);
+      submitAssessment();
+    }
+  }, 1000);
+}
 
-    const root = ReactDOM.createRoot(document.getElementById("root"));
-    root.render(React.createElement(App));
-  </script>
+async function startPractice() {
+  document.getElementById("mode-selection").classList.add("hidden");
+  currentQuestions = await fetchQuestions("practice");
+  userAnswers = new Array(currentQuestions.length).fill(null);
+  renderQuestions();
+}
+
+async function startAssessment() {
+  document.getElementById("mode-selection").classList.add("hidden");
+  document.getElementById("assessment-header").classList.remove("hidden");
+  document.getElementById("question-navigation").classList.remove("hidden");
+  
+  currentQuestions = await fetchQuestions("assessment");
+  userAnswers = new Array(currentQuestions.length).fill(null);
+  currentQuestionIndex = 0;
+  flaggedQuestions.clear();
+  
+  // Set up timer for assessment mode
+  timeRemaining = 3600; // 60 minutes
+  startTimer();
+  
+  renderQuestions();
+}
+
+function showSubmitConfirmation() {
+  document.getElementById("submit-container").classList.remove("hidden");
+  document.getElementById("question-navigation-buttons").classList.add("hidden");
+}
+
+async function submitAssessment() {
+  clearInterval(timerInterval);
+  
+  // Calculate score (mock implementation)
+  let score = 0;
+  currentQuestions.forEach((q, i) => {
+    if (userAnswers[i] && q.correctAnswer) {
+      if (Array.isArray(userAnswers[i])) {
+        // For multi-choice, check if all correct answers are selected
+        if (arraysEqual(userAnswers[i].sort(), q.correctAnswer.sort())) {
+          score++;
+        }
+      } else if (userAnswers[i] === q.correctAnswer) {
+        score++;
+      }
+    }
+  });
+  
+  const total = currentQuestions.length;
+  const percentage = Math.round((score / total) * 100);
+  const passed = percentage >= 70;
+  
+  // Send to backend for certificate generation
+  const payload = {
+    name: user.name,
+    email: user.email,
+    curriculum: "Nigerian",
+    grade: "Grade6",
+    subject: "Mathematics",
+    assessment_title: "Full Assessment",
+    score,
+    total
+  };
+  
+  try {
+    const res = await fetch(`${API_BASE}/submit_assessment`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    
+    // Show results
+    showResults(score, total, percentage, passed, data.certificate);
+  } catch (error) {
+    console.error("Error submitting assessment:", error);
+    // Fallback to showing results even if API fails
+    showResults(score, total, percentage, passed);
+  }
+}
+
+function showResults(score, total, percentage, passed, certificateUrl) {
+  document.getElementById("assessment-header").classList.add("hidden");
+  document.getElementById("question-navigation").classList.add("hidden");
+  document.getElementById("questions-container").classList.add("hidden");
+  document.getElementById("submit-container").classList.add("hidden");
+  document.getElementById("question-navigation-buttons").classList.add("hidden");
+  
+  document.getElementById("score-display").textContent = `${score}/${total}`;
+  document.getElementById("score-progress").style.width = `${percentage}%`;
+  
+  if (passed) {
+    document.getElementById("result-message").textContent = `Congratulations! You passed with a score of ${percentage}%.`;
+    document.getElementById("performance-feedback").textContent = "Your performance shows strong understanding of the material.";
+    
+    if (certificateUrl) {
+      const certLink = document.getElementById("certificate-link");
+      certLink.href = `${API_BASE}${certificateUrl}`;
+      document.getElementById("certificate-container").classList.remove("hidden");
+    }
+  } else {
+    document.getElementById("result-message").textContent = `You scored ${percentage}%. Keep practicing to improve your skills.`;
+    document.getElementById("performance-feedback").textContent = "Review the material and try again to achieve a passing score.";
+    document.getElementById("certificate-container").classList.add("hidden");
+  }
+  
+  document.getElementById("results-section").classList.remove("hidden");
+}
+
+function restartAssessment() {
+  document.getElementById("results-section").classList.add("hidden");
+  startAssessment();
+}
+
+function goToDashboard() {
+  document.getElementById("results-section").classList.add("hidden");
+  document.getElementById("mode-selection").classList.remove("hidden");
+}
+
+// Utility function to compare arrays
+function arraysEqual(a, b) {
+  if (a === b) return true;
+  if (a == null || b == null) return false;
+  if (a.length !== b.length) return false;
+  
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
+</script>
 </body>
 </html>
-
