@@ -144,12 +144,13 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Welcome />} />
-        <Route path="/login" element={<Login setUser={setUser} />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/dashboard" element={user ? <Dashboard user={user} /> : <Welcome />} />
-        <Route path="/practice" element={user ? <Practice /> : <Welcome />} />
-      </Routes>
+  <Route path="/" element={<Welcome />} />
+  <Route path="/login" element={<Login setUser={setUser} />} />
+  <Route path="/register" element={<Register />} />
+  <Route path="/dashboard" element={user ? <Dashboard user={user} /> : <Welcome />} />
+  <Route path="/practice" element={user ? <Practice /> : <Welcome />} />
+  <Route path="/assessment" element={user ? <Assessment /> : <Welcome />} />
+</Routes>
     </Router>
   );
 }
